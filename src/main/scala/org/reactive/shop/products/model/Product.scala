@@ -1,11 +1,11 @@
-package org.reactive.shop.model
+package org.reactive.shop.products.model
 
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import spray.json.DefaultJsonProtocol
 
-case class Product(name: String, price: Float)
+case class Product(id: String, name: String, description: String, price: Float)
 
 trait ProductJsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
-  implicit val productFormat = jsonFormat2(Product)
+  implicit val productFormat = jsonFormat4(Product)
 }
 
