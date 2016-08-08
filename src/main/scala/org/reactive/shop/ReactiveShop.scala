@@ -4,7 +4,7 @@ import akka.actor.{Props, ActorSystem}
 import akka.http.scaladsl.Http
 import akka.stream.ActorMaterializer
 import org.reactive.shop.products.http.RestApi
-import org.reactive.shop.products.persistence.ProductsPersistentActor
+import org.reactive.shop.products.persistence.{ProductsQueryActor, ProductsCommandActor}
 
 import scala.io.StdIn
 
@@ -14,8 +14,9 @@ object ReactiveShop extends App {
   implicit val materializer = ActorMaterializer()
   implicit val executionContext = system.dispatcher
 
-  val productsActor = system.actorOf(Props[ProductsPersistentActor])
-  val bindingFuture = Http().bindAndHandle(new RestApi(productsActor).route, "localhost", port)
+  val productsCommandActor = system.actorOf(Props[ProductsCommandActor])
+  val productsQueryActor = system.actorOf(Props(classOf[ProductsQueryActor], materializer))
+  val bindingFuture = Http().bindAndHandle(new RestApi(productsCommandActor, productsQueryActor).route, "localhost", port)
   println(s"Reactive app started. Listening on $port")
   StdIn.readLine()
   bindingFuture.flatMap(_.unbind()).onComplete(_ => system.terminate())

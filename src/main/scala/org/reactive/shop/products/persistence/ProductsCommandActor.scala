@@ -3,16 +3,15 @@ package org.reactive.shop.products.persistence
 import akka.actor.ActorLogging
 import akka.persistence.{SnapshotOffer, PersistentActor}
 import org.reactive.shop.products.model.Product
-import org.reactive.shop.products.persistence.ProductsPersistentActor._
+import org.reactive.shop.products.persistence.ProductsCommandActor._
 
-class ProductsPersistentActor extends PersistentActor with ActorLogging {
+class ProductsCommandActor extends PersistentActor with ActorLogging {
+
   override def persistenceId: String = "products-persistent-actor"
 
   private var productsStore: ProductsStore = new ProductsStore
 
   override def receiveCommand: Receive = {
-    case ProductsQuery =>
-      sender() ! productsStore.getProducts
     case InsertProductCommand(product: Product) =>
       log.info("Received InsertProductCommand")
       persist(InsertProductEvent(product)) { insertEvent =>
@@ -33,9 +32,8 @@ class ProductsPersistentActor extends PersistentActor with ActorLogging {
 
 }
 
-object ProductsPersistentActor {
-
-  case object ProductsQuery
+object ProductsCommandActor {
+  val PERSISTENCE_ID = "products-persistent-actor"
 
   trait ProductsCommand
   case object SnapshotProducts extends ProductsCommand
