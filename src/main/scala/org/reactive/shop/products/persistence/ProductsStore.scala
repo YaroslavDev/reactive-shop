@@ -1,9 +1,9 @@
 package org.reactive.shop.products.persistence
 
 import org.reactive.shop.products.model.Product
-import org.reactive.shop.products.persistence.ProductsPersistentActor.{UpdateProductEvent, InsertProductEvent, ProductsEvent}
+import org.reactive.shop.products.persistence.ProductsCommandActor.{UpdateProductEvent, InsertProductEvent, ProductsEvent}
 
-class ProductsStore {
+class ProductsStore extends Serializable {
 
   private var products: List[Product] = Nil
 
@@ -15,4 +15,6 @@ class ProductsStore {
   }
 
   def getProducts: List[Product] = products
+
+  override def toString: String = products.toString
 }
