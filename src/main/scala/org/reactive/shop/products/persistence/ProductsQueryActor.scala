@@ -15,8 +15,15 @@ class ProductsQueryActor(implicit val materializer: ActorMaterializer) extends A
   override def preStart(): Unit = {
     val queries = PersistenceQuery(context.system).readJournalFor[LeveldbReadJournal](LeveldbReadJournal.Identifier)
     val src = queries.eventsByPersistenceId(ProductsCommandActor.PERSISTENCE_ID)
-    val events = src.map[ProductsEvent](_.event.asInstanceOf[ProductsEvent])
-    events.runForeach(productsStore.updateState)
+    val events = src.map(_.event)
+    events.runForeach {
+      case productsEvent: ProductsEvent =>
+        log.info(s"Updating read side with event $productsEvent")
+        productsStore.updateState(productsEvent)
+      case snapshot: ProductsStore =>
+        log.info(s"Updating read side with snapshot $snapshot")
+        productsStore = snapshot
+    }
   }
 
   override def receive: Actor.Receive = {
