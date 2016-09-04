@@ -4,12 +4,13 @@ import akka.actor.ActorLogging
 import akka.persistence.{SnapshotOffer, PersistentActor}
 import org.reactive.shop.products.model.Product
 import org.reactive.shop.products.persistence.ProductsCommandActor._
+import org.reactive.shop.products.persistence.events.{InsertProductEvent, UpdateProductEvent, ProductsEvent}
 import scala.concurrent.duration._
 
 class ProductsCommandActor extends PersistentActor with ActorLogging {
   import context.dispatcher
 
-  override def persistenceId: String = "products-persistent-actor"
+  override def persistenceId: String = PERSISTENCE_ID
 
   private var productsStore: ProductsStore = new ProductsStore
 
@@ -51,8 +52,4 @@ object ProductsCommandActor {
   case object SnapshotProducts extends ProductsCommand
   case class InsertProductCommand(product: Product) extends ProductsCommand
   case class UpdateProductCommand(product: Product) extends ProductsCommand
-
-  trait ProductsEvent
-  case class InsertProductEvent(product: Product) extends ProductsEvent
-  case class UpdateProductEvent(product: Product) extends ProductsEvent
 }

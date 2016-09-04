@@ -4,8 +4,8 @@ import akka.actor.{Actor, ActorLogging}
 import akka.persistence.query.PersistenceQuery
 import akka.persistence.query.journal.leveldb.scaladsl.LeveldbReadJournal
 import akka.stream.ActorMaterializer
-import org.reactive.shop.products.persistence.ProductsCommandActor.ProductsEvent
 import org.reactive.shop.products.persistence.ProductsQueryActor.ProductsQuery
+import org.reactive.shop.products.persistence.events.ProductsEvent
 
 class ProductsQueryActor(implicit val materializer: ActorMaterializer) extends Actor with ActorLogging {
 
