@@ -1,8 +1,8 @@
 package org.reactive.shop.products.persistence
 
 import akka.actor.{Actor, ActorLogging}
+import akka.contrib.persistence.mongodb.{MongoReadJournal, ScalaDslMongoReadJournal}
 import akka.persistence.query.PersistenceQuery
-import akka.persistence.query.journal.leveldb.scaladsl.LeveldbReadJournal
 import akka.stream.ActorMaterializer
 import org.reactive.shop.products.persistence.ProductsQueryActor.ProductsQuery
 import org.reactive.shop.products.persistence.events.ProductsEvent
@@ -13,9 +13,9 @@ class ProductsQueryActor(implicit val materializer: ActorMaterializer) extends A
 
   @throws[Exception](classOf[Exception])
   override def preStart(): Unit = {
-    val queries = PersistenceQuery(context.system).readJournalFor[LeveldbReadJournal](LeveldbReadJournal.Identifier)
-    val src = queries.eventsByPersistenceId(ProductsCommandActor.PERSISTENCE_ID)
-    val events = src.map(_.event)
+    val journal = PersistenceQuery(context.system).readJournalFor[ScalaDslMongoReadJournal](MongoReadJournal.Identifier)
+    val eventEnvelopes = journal.eventsByPersistenceId(ProductsCommandActor.PERSISTENCE_ID, 0L, Long.MaxValue)
+    val events = eventEnvelopes.map(_.event)
     events.runForeach {
       case productsEvent: ProductsEvent =>
         log.info(s"Updating read side with event $productsEvent")
