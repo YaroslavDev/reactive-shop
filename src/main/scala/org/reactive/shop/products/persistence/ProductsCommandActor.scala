@@ -1,10 +1,11 @@
 package org.reactive.shop.products.persistence
 
 import akka.actor.ActorLogging
-import akka.persistence.{SnapshotOffer, PersistentActor}
+import akka.persistence.{PersistentActor, SnapshotOffer}
 import org.reactive.shop.products.model.Product
 import org.reactive.shop.products.persistence.ProductsCommandActor._
-import org.reactive.shop.products.persistence.events.{InsertProductEvent, UpdateProductEvent, ProductsEvent}
+import org.reactive.shop.products.persistence.events.{InsertProductEvent, ProductsEvent, UpdateProductEvent}
+
 import scala.concurrent.duration._
 
 class ProductsCommandActor extends PersistentActor with ActorLogging {
