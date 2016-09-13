@@ -8,10 +8,8 @@ import org.reactive.shop.products.persistence.events.{InsertProductEvent, Produc
 
 import scala.concurrent.duration._
 
-class ProductsCommandActor extends PersistentActor with ActorLogging {
+class ProductsCommandActor(override val persistenceId: String) extends PersistentActor with ActorLogging {
   import context.dispatcher
-
-  override def persistenceId: String = PERSISTENCE_ID
 
   private var productsStore: ProductsStore = new ProductsStore
 
@@ -25,15 +23,18 @@ class ProductsCommandActor extends PersistentActor with ActorLogging {
       log.info(s"Received InsertProductCommand: $cmd")
       persist(InsertProductEvent(product)) { insertEvent =>
         productsStore.updateState(insertEvent)
+        sender() ! InsertProductResponse(product)
       }
     case cmd@UpdateProductCommand(product: Product) =>
       log.info(s"Received UpdateProductCommand: $cmd")
       persist(UpdateProductEvent(product)) { updateEvent =>
         productsStore.updateState(updateEvent)
+        sender() ! UpdateProductResponse(product)
       }
     case SnapshotProducts =>
       log.info("Received SnapshotProducts command")
       saveSnapshot(productsStore)
+      sender() ! SnapshotResponse
   }
 
   override def receiveRecover: Receive = {
@@ -47,10 +48,16 @@ class ProductsCommandActor extends PersistentActor with ActorLogging {
 }
 
 object ProductsCommandActor {
-  val PERSISTENCE_ID = "products-persistent-actor"
 
   trait ProductsCommand
+  trait ProductsResponse
+
   case object SnapshotProducts extends ProductsCommand
+  case object SnapshotResponse extends ProductsResponse
+
   case class InsertProductCommand(product: Product) extends ProductsCommand
+  case class InsertProductResponse(product: Product) extends ProductsResponse
+
   case class UpdateProductCommand(product: Product) extends ProductsCommand
+  case class UpdateProductResponse(product: Product) extends ProductsResponse
 }

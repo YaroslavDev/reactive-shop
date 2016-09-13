@@ -7,14 +7,14 @@ import akka.stream.ActorMaterializer
 import org.reactive.shop.products.persistence.ProductsQueryActor.ProductsQuery
 import org.reactive.shop.products.persistence.events.ProductsEvent
 
-class ProductsQueryActor(implicit val materializer: ActorMaterializer) extends Actor with ActorLogging {
+class ProductsQueryActor(val persistenceId: String, implicit val materializer: ActorMaterializer) extends Actor with ActorLogging {
 
   private var productsStore: ProductsStore = new ProductsStore
 
   @throws[Exception](classOf[Exception])
   override def preStart(): Unit = {
     val journal = PersistenceQuery(context.system).readJournalFor[ScalaDslMongoReadJournal](MongoReadJournal.Identifier)
-    val eventEnvelopes = journal.eventsByPersistenceId(ProductsCommandActor.PERSISTENCE_ID, 0L, Long.MaxValue)
+    val eventEnvelopes = journal.eventsByPersistenceId(persistenceId, 0L, Long.MaxValue)
     val events = eventEnvelopes.map(_.event)
     events.runForeach {
       case productsEvent: ProductsEvent =>
