@@ -7,6 +7,8 @@ val reactiveMongoVersion = "0.11.9"
 val mongoPluginVersion = "1.2.5"
 val inmemoryPluginVersion = "1.3.8"
 
+resolvers += Resolver.jcenterRepo
+
 libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-http-experimental" % akkaVersion,
   "com.typesafe.akka" %% "akka-http-spray-json-experimental" % akkaVersion,
@@ -23,6 +25,5 @@ libraryDependencies ++= Seq(
 )
 
 licenses := Seq(("CC0", url("http://creativecommons.org/publicdomain/zero/1.0")))
-
 
 fork in run := true

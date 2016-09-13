@@ -20,21 +20,22 @@ class ProductsCommandActor(override val persistenceId: String) extends Persisten
 
   override def receiveCommand: Receive = {
     case cmd@InsertProductCommand(product: Product) =>
-      log.info(s"Received InsertProductCommand: $cmd")
+      log.info(s"Inserting new product $product")
       persist(InsertProductEvent(product)) { insertEvent =>
         productsStore.updateState(insertEvent)
         sender() ! InsertProductResponse(product)
       }
     case cmd@UpdateProductCommand(product: Product) =>
-      log.info(s"Received UpdateProductCommand: $cmd")
+      log.info(s"Updating existing product $product")
       persist(UpdateProductEvent(product)) { updateEvent =>
         productsStore.updateState(updateEvent)
         sender() ! UpdateProductResponse(product)
       }
     case SnapshotProducts =>
-      log.info("Received SnapshotProducts command")
+      log.info("Saving snapshot of current productsStore")
       saveSnapshot(productsStore)
-      sender() ! SnapshotResponse
+    case GetProductsStore =>
+      sender() ! productsStore
   }
 
   override def receiveRecover: Receive = {
@@ -53,11 +54,12 @@ object ProductsCommandActor {
   trait ProductsResponse
 
   case object SnapshotProducts extends ProductsCommand
-  case object SnapshotResponse extends ProductsResponse
 
   case class InsertProductCommand(product: Product) extends ProductsCommand
   case class InsertProductResponse(product: Product) extends ProductsResponse
 
   case class UpdateProductCommand(product: Product) extends ProductsCommand
   case class UpdateProductResponse(product: Product) extends ProductsResponse
+
+  case object GetProductsStore extends ProductsCommand
 }

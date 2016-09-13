@@ -1,35 +1,60 @@
 package org.reactive.shop.products.persistence
 
 import java.util.UUID
-import java.util.concurrent.TimeUnit._
 
-import akka.actor.{ActorSystem, Props}
+import akka.actor.{ActorRef, ActorSystem, PoisonPill, Props}
 import akka.testkit.{ImplicitSender, TestKit}
-import akka.util.Timeout
 import org.reactive.shop.products.expectedProduct
-import org.reactive.shop.products.persistence.ProductsCommandActor.{InsertProductCommand, InsertProductResponse}
-import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+import org.reactive.shop.products.persistence.ProductsCommandActor._
+import org.scalatest.{BeforeAndAfterEach, BeforeAndAfterAll, Matchers, WordSpecLike}
+
+import scala.concurrent.duration._
 
 class ProductsCommandActorTest extends TestKit(ActorSystem("ProductsCommandActorTest"))
   with WordSpecLike
   with Matchers
   with BeforeAndAfterAll
+  with BeforeAndAfterEach
   with ImplicitSender {
 
-  implicit val timeout = Timeout(5, SECONDS)
-  //implicit val patience = PatienceConfig(timeout = Span(5, Seconds), interval = Span(500, Millis))
+  var persistentId = ""
+  var commandsActor1: ActorRef = null
 
   override protected def afterAll(): Unit = {
     TestKit.shutdownActorSystem(system)
   }
 
+  override protected def beforeEach(): Unit = {
+    persistentId = UUID.randomUUID().toString
+    commandsActor1 = system.actorOf(Props(classOf[ProductsCommandActor], persistentId))
+  }
+
   "ProductsCommandActor" should {
-    val persistentId = UUID.randomUUID().toString
-    val commandsActor = system.actorOf(Props(classOf[ProductsCommandActor], persistentId))
+    val timeout = 5 seconds
 
     "insert new product" in {
-      commandsActor ! InsertProductCommand(expectedProduct)
-      expectMsg(InsertProductResponse(expectedProduct))
+      commandsActor1 ! InsertProductCommand(expectedProduct)
+      expectMsg(timeout, InsertProductResponse(expectedProduct))
+
+      commandsActor1 ! PoisonPill
+
+      val commandsActor2 = system.actorOf(Props(classOf[ProductsCommandActor], persistentId))
+      commandsActor2 ! GetProductsStore
+      expectMsg(timeout, ProductsStore(List(expectedProduct)))
+    }
+
+    "update existing product" in {
+      commandsActor1 ! InsertProductCommand(expectedProduct)
+      expectMsg(timeout, InsertProductResponse(expectedProduct))
+      val updatedProduct = expectedProduct.copy(price = 2000.0f)
+      commandsActor1 ! UpdateProductCommand(updatedProduct)
+      expectMsg(timeout, UpdateProductResponse(updatedProduct))
+
+      commandsActor1 ! PoisonPill
+
+      val commandsActor2 = system.actorOf(Props(classOf[ProductsCommandActor], persistentId))
+      commandsActor2 ! GetProductsStore
+      expectMsg(timeout, ProductsStore(List(updatedProduct)))
     }
   }
 
