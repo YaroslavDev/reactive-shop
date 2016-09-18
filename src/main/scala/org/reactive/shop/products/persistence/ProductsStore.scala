@@ -3,9 +3,7 @@ package org.reactive.shop.products.persistence
 import org.reactive.shop.products.model.Product
 import org.reactive.shop.products.persistence.events.{UpdateProductEvent, InsertProductEvent, ProductsEvent}
 
-class ProductsStore extends Serializable {
-
-  private var products: List[Product] = Nil
+case class ProductsStore(var products: List[Product] = Nil) extends Serializable {
 
   def updateState(event: ProductsEvent) = event match {
     case InsertProductEvent(product: Product) =>
