@@ -10,7 +10,7 @@ import org.reactive.shop.products.persistence.ProductsQueryActor.ProductsQuery
 import org.scalatest.Matchers
 import org.scalatest.WordSpec
 
-import org.reactive.shop.products._
+import org.reactive.shop.products.expectedProduct
 
 class ProductsRestApiTest extends WordSpec
   with Matchers
