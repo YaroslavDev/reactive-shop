@@ -1,22 +1,14 @@
 package org.reactive.shop.products.persistence
 
 import akka.actor.ActorLogging
-import akka.persistence.{PersistentActor, SnapshotOffer}
+import akka.persistence._
 import org.reactive.shop.products.model.Product
 import org.reactive.shop.products.persistence.ProductsCommandActor._
 import org.reactive.shop.products.persistence.events.{InsertProductEvent, ProductsEvent, UpdateProductEvent}
 
-import scala.concurrent.duration._
-
 class ProductsCommandActor(override val persistenceId: String) extends PersistentActor with ActorLogging {
-  import context.dispatcher
 
   private var productsStore: ProductsStore = new ProductsStore
-
-  @throws[Exception](classOf[Exception])
-  override def preStart(): Unit = {
-    context.system.scheduler.schedule(Duration.Zero, 10 seconds, self, SnapshotProducts)
-  }
 
   override def receiveCommand: Receive = {
     case cmd@InsertProductCommand(product: Product) =>
@@ -34,6 +26,8 @@ class ProductsCommandActor(override val persistenceId: String) extends Persisten
     case SnapshotProducts =>
       log.info("Saving snapshot of current productsStore")
       saveSnapshot(productsStore)
+    case SaveSnapshotFailure(_, cause: Throwable) =>
+      log.error(s"Could not save snapshot $cause")
     case GetProductsStore =>
       sender() ! productsStore
   }

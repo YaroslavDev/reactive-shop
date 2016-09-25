@@ -11,7 +11,7 @@ import org.reactive.shop.products.persistence.events.ProductsEvent
 
 class ProductsQueryActor(val persistenceId: String, implicit val materializer: ActorMaterializer) extends Actor with ActorLogging {
 
-  private var productsStore: ProductsStore = new ProductsStore
+  private val productsStore: ProductsStore = new ProductsStore
 
   @throws[Exception](classOf[Exception])
   override def preStart(): Unit = {
@@ -21,9 +21,8 @@ class ProductsQueryActor(val persistenceId: String, implicit val materializer: A
       case productsEvent: ProductsEvent =>
         log.info(s"Updating read side with event $productsEvent")
         productsStore.updateState(productsEvent)
-      case snapshot: ProductsStore =>
-        log.info(s"Updating read side with snapshot $snapshot")
-        productsStore = snapshot
+      case any =>
+        log.info(s"Read side received something else $any")
     }
   }
 

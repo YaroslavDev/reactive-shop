@@ -8,7 +8,7 @@ import akka.http.scaladsl.server.Directives._
 import akka.pattern.ask
 import akka.util.Timeout
 import org.reactive.shop.products.model.{Product, ProductList, ProductListJsonSupport}
-import org.reactive.shop.products.persistence.ProductsCommandActor.{UpdateProductResponse, InsertProductResponse, InsertProductCommand, UpdateProductCommand}
+import org.reactive.shop.products.persistence.ProductsCommandActor._
 import org.reactive.shop.products.persistence.ProductsQueryActor.ProductsQuery
 
 import scala.concurrent.Future
@@ -17,7 +17,7 @@ class ProductsRestApi(productsCommandActor: ActorRef, productsQueryActor: ActorR
 
   val route =
     pathPrefix("api") {
-      path("products") {
+      pathPrefix("products") {
         get {
           onSuccess(fetchProducts) { products =>
             complete(ProductList(products))
@@ -33,6 +33,14 @@ class ProductsRestApi(productsCommandActor: ActorRef, productsQueryActor: ActorR
         put {
           entity(as[Product]) { product =>
             onSuccess(updateProduct(product)) { response =>
+              complete(StatusCodes.OK)
+            }
+          }
+        } ~
+        path("snapshot") {
+          post {
+            entity(as[String]) { _ =>
+              productsCommandActor ! SnapshotProducts
               complete(StatusCodes.OK)
             }
           }
