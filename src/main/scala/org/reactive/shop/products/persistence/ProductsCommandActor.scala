@@ -26,8 +26,6 @@ class ProductsCommandActor(override val persistenceId: String) extends Persisten
     case SnapshotProducts =>
       log.info("Saving snapshot of current productsStore")
       saveSnapshot(productsStore)
-    case SaveSnapshotFailure(_, cause: Throwable) =>
-      log.error(s"Could not save snapshot $cause")
     case GetProductsStore =>
       sender() ! productsStore
   }

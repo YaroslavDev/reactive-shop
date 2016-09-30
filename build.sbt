@@ -9,6 +9,8 @@ val inmemoryPluginVersion = "1.3.8"
 
 resolvers += Resolver.jcenterRepo
 
+resolvers += "Typesafe repository releases" at "http://repo.typesafe.com/typesafe/releases/"
+
 libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-http-experimental" % akkaVersion,
   "com.typesafe.akka" %% "akka-http-spray-json-experimental" % akkaVersion,
